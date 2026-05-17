@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My AirAware Diary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:ital,wght@1,400&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --primary-text: #e0e0e0;
+            --secondary-text: #a0a0b0;
+            --accent-color: #00e5ff;
+            --panel-bg: rgba(23, 23, 43, 0.6);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --danger-color: #ff5555;
+            --gradient-white: linear-gradient(to right, #ffffff, #e0e0e0);
+        }
+
+        body {
+            margin: 0;
+            padding: 80px 0;
+            background-color: var(--bg-color);
+            font-family: 'Poppins', sans-serif;
+            color: var(--primary-text);
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; 
+        }
+        
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.15), transparent 40%),
+                        radial-gradient(circle at 80% 90%, rgba(127, 0, 255, 0.15), transparent 40%);
+            background-size: 200% 200%;
+            animation: moveGradient 25s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes moveGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #diary-container {
+            width: 100%;
+            max-width: 780px;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 3.5em;
+            padding-bottom: 15px;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed var(--panel-border);
+        }
+
+        #top-bar, #bottom-bar {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            background: rgba(26, 26, 46, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        #top-bar { 
+            top: 0; 
+            padding: 10px 15px; 
+            display: flex; /* Added for alignment */
+            align-items: center; /* Added for alignment */
+        }
+        #bottom-bar { bottom: 0; height: 70px; display: flex; justify-content: center; align-items: center; }
+        
+        /* --- ADDED: Glossy Home Button Styles --- */
+        .home-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .home-icon:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 
+                0 6px 10px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+        }
+        .home-icon img {
+            width: 20px;
+            height: 20px;
+            filter: brightness(0) invert(0.2); /* Makes icon dark to contrast with glossy background */
+        }
+
+        .fab-container {
+            width: 90%; max-width: 600px; height: 48px; display: flex;
+            justify-content: flex-end; align-items: center; padding: 0 10px;
+            border: 1px solid var(--panel-border); border-radius: 24px; background: var(--panel-bg);
+        }
+        .fab-container::before {
+            content: 'New Entry:'; font-size: 1.1em; color: var(--secondary-text);
+            margin-right: auto; padding-left: 10px;
+        }
+        .quick-action-button {
+            background: none; border: none; color: var(--secondary-text);
+            font-size: 1.3em; width: 40px; height: 40px; cursor: pointer;
+            transition: color 0.2s, background-color 0.2s; border-radius: 50%; margin-left: 10px;
+        }
+        .quick-action-button:hover { color: var(--accent-color); background-color: rgba(0, 229, 255, 0.1); }
+
+        .post {
+            background: var(--panel-bg); border: 1px solid var(--panel-border);
+            padding: 20px; margin-bottom: 30px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative;
+            display: flex; flex-direction: column;
+        }
+        
+        .paperclip {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            font-size: 1.8em;
+            color: transparent; 
+            background-image: var(--gradient-white);
+            -webkit-background-clip: text;
+            background-clip: text;
+            transform: rotate(-25deg);
+            z-index: 2;
+        }
+        .heart-below-paperclip {
+            position: absolute;
+            top: 25px;
+            left: 20px;
+            font-size: 1.2em;
+            color: transparent;
+            background-image: var(--gradient-white);
+            -webkit-background-clip: text;
+            background-clip: text;
+            z-index: 2;
+            opacity: 0.9;
+        }
+        
+        .post-header {
+            font-size: 0.9em;
+            color: var(--secondary-text);
+            margin-bottom: 15px;
+            padding-top: 40px;
+        }
+        
+        .post-content { line-height: 1.7; word-wrap: break-word; }
+        .post-content img {
+            max-width: 100%; height: auto; display: block; margin-bottom: 15px;
+            border-radius: 8px; border: 1px solid var(--panel-border);
+        }
+        .post-actions {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--panel-border); padding-top: 10px; margin-top: 15px;
+        }
+        .action-button {
+            background: none; border: none; color: var(--secondary-text);
+            cursor: pointer; padding: 5px 10px; transition: color 0.2s; font-size: 1em;
+        }
+        .action-button:hover { color: var(--accent-color); }
+        .liked { color: var(--accent-color) !important; }
+        .delete-button { color: var(--danger-color); }
+
+        .comment {
+            background: rgba(0,0,0,0.2); padding: 8px 30px 8px 12px; margin-bottom: 5px;
+            border-left: 2px solid var(--accent-color); font-size: 0.9em;
+            position: relative; border-radius: 4px;
+        }
+        .comment-delete {
+            position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--secondary-text);
+            cursor: pointer; font-size: 0.9em; opacity: 0.7;
+            transition: opacity 0.2s, color 0.2s;
+        }
+        .comment-delete:hover { opacity: 1; color: var(--danger-color); }
+        .comment-form-container { display: none; margin-top: 10px; }
+        .comment-input-style {
+            border: 1px solid var(--panel-border); background-color: rgba(0,0,0,0.2);
+            color: var(--primary-text); font-size: 1.1em; padding: 12px;
+            width: 100%; box-sizing: border-box; margin-top: 5px; margin-bottom: 5px;
+            border-radius: 4px;
+        }
+
+        #post-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        #post-form {
+            background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 30px;
+            border-radius: 12px; width: 90%; max-width: 500px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3); position: relative;
+        }
+        #close-modal {
+            position: absolute; top: 10px; right: 10px; background: none; border: none;
+            font-size: 1.2em; color: var(--secondary-text); cursor: pointer;
+        }
+        #modal-title {
+            font-family: 'Playfair Display', serif; color: #fff; margin-top: 0;
+            border-bottom: 1px solid var(--panel-border); padding-bottom: 10px;
+        }
+        #post-text {
+            width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box;
+            border: 1px solid var(--panel-border); border-radius: 4px; font-family: 'Poppins', sans-serif;
+            font-size: 1.1em; background-color: rgba(0,0,0,0.2); color: var(--primary-text);
+        }
+        .image-input-area {
+            display: none; margin-bottom: 15px; border: 1px dashed var(--accent-color); padding: 10px;
+            border-radius: 4px; text-align: center;
+            background-color: rgba(0,0,0,0.2); color: var(--secondary-text);
+        }
+        #image-preview {
+            max-width: 100%; max-height: 200px; margin: 10px auto;
+            display: none; border-radius: 4px; border: 1px solid var(--panel-border);
+        }
+        .post-button {
+            background: var(--accent-color); color: var(--bg-color); border: none; padding: 10px 20px;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="gradient-bg"></div>
+
+<div id="top-bar">
+    <a href="home.html" class="home-icon">
+        <img src="C:\Users\Amuly\OneDrive\Desktop\AIRAWARE\assests\home.png" alt="Go to Homepage">
+    </a>
+</div>
+
+<div id="diary-container">
+    <h1>My AirAware Diary</h1>
+    <div id="posts-list"></div>
+</div>
+
+<div id="bottom-bar">
+    <div class="fab-container">
+        <button class="quick-action-button" onclick="showPostModal('note')" title="Quick Note">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="quick-action-button" onclick="showPostModal('photo')" title="Quick Photo">
+            <i class="fas fa-image"></i>
+        </button>
+    </div>
+</div>
+
+<div id="post-modal-overlay">
+    <div id="post-form">
+        <button id="close-modal" onclick="hidePostModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 id="modal-title"></h3>
+        <textarea id="post-text" placeholder="Write your diary entry here..." rows="6"></textarea>
+        <div class="image-input-area" id="image-input-area">
+            <label for="post-file-input" style="cursor: pointer;">
+                <i class="fas fa-upload"></i> Click or Drag & Drop Image Here
+            </label>
+            <input type="file" id="post-file-input" accept="image/*" style="display: none;">
+            <img id="image-preview" alt="Image Preview">
+        </div>
+        <button class="post-button" onclick="handlePostCreation()">Post to Diary</button>
+    </div>
+</div>
+
+<script>
+    // All of your existing JavaScript remains the same
+    const STORAGE_KEY = 'vintageDiaryPosts';
+    const postsList = document.getElementById('posts-list');
+    const postModalOverlay = document.getElementById('post-modal-overlay');
+    const modalTitle = document.getElementById('modal-title');
+    const postText = document.getElementById('post-text');
+    const imageInputArea = document.getElementById('image-input-area');
+    const postFileInput = document.getElementById('post-file-input');
+    const imagePreview = document.getElementById('image-preview');
+
+    let posts = [];
+    let currentPostMode = 'note';
+    let base64ImageString = null;
+
+    function showPostModal(mode) {
+        currentPostMode = mode;
+        postText.value = '';
+        postFileInput.value = '';
+        imagePreview.style.display = 'none';
+        imagePreview.src = '';
+        base64ImageString = null;
+        if (mode === 'note') {
+            modalTitle.textContent = "Create a New Note Entry:";
+            postText.placeholder = "Write your diary entry here...";
+            imageInputArea.style.display = 'none';
+        } else if (mode === 'photo') {
+            modalTitle.textContent = "Post an Image Entry:";
+            postText.placeholder = "Add a caption for your image (optional)...";
+            imageInputArea.style.display = 'block';
+        }
+        postModalOverlay.style.display = 'flex';
+        postText.focus();
+    }
+
+    function hidePostModal() {
+        postModalOverlay.style.display = 'none';
+    }
+
+    function readAndSetImage(file) {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                base64ImageString = e.target.result;
+                imagePreview.src = base64ImageString;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert("Please select a valid image file.");
+            postFileInput.value = '';
+            imagePreview.style.display = 'none';
+            base64ImageString = null;
+        }
+    }
+
+    postFileInput.addEventListener('change', (e) => readAndSetImage(e.target.files[0]));
+    imageInputArea.addEventListener('dragover', (e) => { e.preventDefault(); imageInputArea.style.borderColor = 'var(--accent-color)'; });
+    imageInputArea.addEventListener('dragleave', () => imageInputArea.style.borderColor = 'var(--panel-border)');
+    imageInputArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        imageInputArea.style.borderColor = 'var(--panel-border)';
+        readAndSetImage(e.dataTransfer.files[0]);
+    });
+
+    function handlePostCreation() {
+        const text = postText.value.trim();
+        if (!text && !base64ImageString) {
+            alert("Please enter some text or select an image.");
+            return;
+        }
+        const newPost = { id: Date.now(), timestamp: new Date().toLocaleString(), text: text, imageUrl: base64ImageString, likes: 0, isLiked: false, comments: [] };
+        posts.unshift(newPost);
+        hidePostModal();
+        savePosts();
+    }
+
+    function loadPosts() {
+        const storedPosts = localStorage.getItem(STORAGE_KEY);
+        if (storedPosts) { posts = JSON.parse(storedPosts); }
+        renderPosts();
+    }
+
+    function savePosts() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+        renderPosts();
+    }
+
+    function deletePost(postId) {
+        if (confirm("Are you sure you want to delete this diary entry?")) {
+            posts = posts.filter(post => post.id !== postId);
+            savePosts();
+        }
+    }
+
+    function toggleCommentInput(postId) {
+        const commentForm = document.getElementById(`comment-form-container-${postId}`);
+        const commentInput = document.getElementById(`comment-input-${postId}`);
+        if (commentForm.style.display === 'block') {
+            commentForm.style.display = 'none';
+        } else {
+            commentForm.style.display = 'block';
+            commentForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            commentInput.focus();
+        }
+    }
+
+    function toggleLike(postId) {
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            post.isLiked ? post.likes-- : post.likes++;
+            post.isLiked = !post.isLiked;
+            savePosts();
+        }
+    }
+
+    function addComment(postId) {
+        const commentInput = document.getElementById(`comment-input-${postId}`);
+        const commentText = commentInput.value.trim();
+        if (commentText) {
+            const post = posts.find(p => p.id === postId);
+            if (post) {
+                post.comments.push({ id: Date.now(), text: commentText, author: "You", timestamp: new Date().toLocaleTimeString() });
+                commentInput.value = '';
+                savePosts();
+            }
+        }
+    }
+
+    function deleteComment(postId, commentId) {
+        const post = posts.find(p => p.id === postId);
+        if (post && confirm("Remove this comment?")) {
+            post.comments = post.comments.filter(c => c.id !== commentId);
+            savePosts();
+        }
+    }
+
+    function renderPosts() {
+        postsList.innerHTML = '';
+        if (posts.length === 0) {
+            postsList.innerHTML = '<p style="text-align: center; margin-top: 50px; font-style: italic; color: var(--secondary-text);">Your diary is empty. Tap the icons below to post your first entry!</p>';
+            return;
+        }
+        posts.forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.classList.add('post');
+
+            let imageHTML = post.imageUrl ? `<img src="${post.imageUrl}" alt="Diary Image">` : '';
+            let textHTML = post.text ? `<p>${post.text.replace(/\n/g, '<br>')}</p>` : '';
+            
+            const likeClass = post.isLiked ? 'liked' : '';
+            const likeIcon = post.isLiked ? 'fas' : 'far';
+
+            let commentsHTML = '';
+            post.comments.forEach(comment => {
+                commentsHTML += `
+                    <div class="comment">
+                        <strong>${comment.author}:</strong> ${comment.text}
+                        <button class="comment-delete" onclick="deleteComment(${post.id}, ${comment.id})"><i class="fas fa-times"></i></button>
+                    </div>`;
+            });
+
+            postElement.innerHTML = `
+                <i class="fas fa-paperclip paperclip" title="Pinned Post"></i>
+                <i class="fas fa-heart heart-below-paperclip" title="Special Post"></i>
+                <div class="post-header">Posted on ${post.timestamp}</div>
+                <div class="post-content">
+                    ${imageHTML}
+                    ${textHTML}
+                </div>
+                <div class="post-actions">
+                    <div>
+                        <button class="action-button ${likeClass}" onclick="toggleLike(${post.id})">
+                            <i class="${likeIcon} fa-heart"></i> ${post.likes}
+                        </button>
+                        <button class="action-button" onclick="toggleCommentInput(${post.id})">
+                            <i class="far fa-comment"></i> ${post.comments.length}
+                        </button>
+                    </div>
+                    <button class="action-button delete-button" onclick="deletePost(${post.id})" title="Delete Post"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="comments-section">${commentsHTML}</div>
+                <div id="comment-form-container-${post.id}" class="comment-form-container">
+                    <input type="text" id="comment-input-${post.id}" class="comment-input-style" placeholder="Add a comment..." onkeypress="if(event.key === 'Enter') { addComment(${post.id}); return false; }">
+                </div>
+            `;
+            
+            postsList.appendChild(postElement);
+        });
+    }
+
+    function exitDiary() {
+        if (confirm("Are you sure you want to exit the diary?")) {
+            document.body.innerHTML = '<div style="text-align: center; padding-top: 200px; font-size: 2em; color: var(--primary-text); font-family: \'Dancing Script\', cursive;">Diary closed. Come back soon!</div>';
+        }
+    }
+
+    loadPosts();
+</script>
+</body>
+</html>
